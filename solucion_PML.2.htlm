@@ -1,0 +1,100 @@
+<html>
+
+<head>
+<title>Title</title>
+</head>
+
+<body>
+---
+title: "Project practical machine learning"
+author: "MA"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+<p>This is an R HTML document. When you click the <b>Knit HTML</b> button a web page will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:</p>
+
+<!--
+
+
+#I Cargamos librerias
+
+```{r }
+library(randomForest)
+library(caret)
+library(dplyr)
+```
+
+#II-) Data Processing
+
+#Load the data
+
+
+```{r }
+trainUrl <- "http://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"   
+testUrl <- "http://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"
+
+```
+
+
+#III-)Cleaning data 
+```{r }
+
+#Delete missing values 
+training <- read.csv(url(trainUrl), na.strings=c("NA","#DIV/0!",""))  
+testing <- read.csv(url(testUrl), na.strings=c("NA","#DIV/0!",""))
+
+#Remove variables with near zero variance
+training<-training[,colSums(is.na(training)) == 0]
+testing <-testing[,colSums(is.na(testing)) == 0]
+
+#Remove columns that are not predictors, 6 first columns
+training_col   <-training[,-c(1:6)]
+testing_col <-testing[,-c(1:6)]
+
+#The data after cleaning
+dim(training)
+
+#convertimos en factor variable dependiente
+names(training_col %>% select(where(is.character)))
+training_col$classe<-as.factor(training_col$classe)
+
+```
+
+#III model fit
+```{r }
+set.seed(1222)
+Intrain<-createDataPartition(training_col$classe,p=0.8,list=FALSE)
+training<-training_col[Intrain, ]
+validation<-training_col[-Intrain, ]
+
+
+train.rf <- randomForest(classe ~ ., data=training, importance=TRUE, ntrees=10)
+predRf<- predict(train.rf,training )
+
+plot(train.rf)
+plot(predRf)
+
+confusionMatrix(predRf, training$classe)
+```
+
+#IV validation 
+```{r }
+validation.rf<-predict(train.rf,validation)
+confusionMatrix(validation.rf, validation$classe)
+```
+
+# V prediccion en el testing set (OOS)
+
+```{r }
+  test<-predict(train.rf, testing_col )
+
+```
+
+
+
+
+end.rcode-->
+
+</body>
+</html>
